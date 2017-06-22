@@ -8,7 +8,7 @@
 - Embed in your web page by adding this code…
 
 ```
-<div class="activityContainer">
+<div id="activityContainer">
 </div>
 <script src="https://rawcdn.githack.com/ojas/tch-activity/master/tch.js"></script>
 <script type='text/javascript'>
@@ -16,13 +16,24 @@
 </script>
 ```
 
-Example:
+Example for TCH - North Austin
 
 ```
-<div class="activityContainer">
+<div id="activityContainerNorth">
 </div>
 <script src="https://rawcdn.githack.com/ojas/tch-activity/master/tch.js"></script>
 <script type='text/javascript'>
-	TCH.renderActivity('1oXieCimzK5EL__6G-BgODD9QsDHuCPbMdafSA_Gl67c', 'activityContainer')
+	TCH.renderActivity('1oXieCimzK5EL__6G-BgODD9QsDHuCPbMdafSA_Gl67c', 'activityContainerNorth')
+</script>
+```
+
+Example for TCH - South Austin
+
+```
+<div id="activityContainerSouth">
+</div>
+<script src="https://rawcdn.githack.com/ojas/tch-activity/master/tch.js"></script>
+<script type='text/javascript'>
+	TCH.renderActivity('1Whjm-QWr3s2xpgoPHJtIVkEUDxyKVNTHtjt66scnhTs', 'activityContainerSouth')
 </script>
 ```
