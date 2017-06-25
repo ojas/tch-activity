@@ -86,6 +86,7 @@ TCH.renderActivity = function(publicSpreadsheetUrl, eleId)
     }
     function _showInfo(wb, tabletop) {
         var openInfo = _openInfo(wb.Hours.elements);
+        openInfo.openNow = true;
 
         for(var i=0; i<wb.Activity.elements.length; i++){
             var row = wb.Activity.elements[i];
