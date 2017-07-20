@@ -1,7 +1,8 @@
+import os
 from flask import Flask, request, Response, jsonify
 import json
 
-API_KEYS = ['i+acxn5(akgsn!']
+API_KEYS = os.environ.get('API_KEYS', '').split(',') 
 
 app = Flask(__name__)
 
