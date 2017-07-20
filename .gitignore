@@ -1,0 +1,10 @@
+env
+*.pyc
+*.sqlite3
+*.bak
+.DS_Store
+node_modules
+bower_components
+.idea
+media
+data
