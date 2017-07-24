@@ -37,3 +37,52 @@ Example for TCH - South Austin
 	TCH.renderActivity('1Whjm-QWr3s2xpgoPHJtIVkEUDxyKVNTHtjt66scnhTs', 'activityContainerSouth')
 </script>
 ```
+
+### Data API
+
+`API_KEYS` environment varible is a comma-seperated list of API keys
+
+
+Endpoints
+
+```
+POST https://tch-activity.apps.sage-iq.com/data/north-austin
+POST https://tch-activity.apps.sage-iq.com/data/south-austin
+```
+
+Headers:
+
+```
+Api-Key: test123
+Content-Type: application/json
+```
+
+Body (JSON):
+
+```
+{
+  "checkins" : 123
+}
+```
+
+Examples
+
+Set north location to 42 checkins…
+
+```
+curl \
+    -H 'Api-Key: test123' \
+    -H 'Content-Type: application/json' \
+    --data '{"checkins": 42}' \
+    https://tch-activity.apps.sage-iq.com/data/north-austin
+```
+
+Set south location to 56 checkins…
+
+```
+curl \
+    -H 'Api-Key: test123' \
+    -H 'Content-Type: application/json' \
+    --data '{"checkins": 56}' \
+    https://tch-activity.apps.sage-iq.com/data/south-austin
+```
