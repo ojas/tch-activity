@@ -110,6 +110,22 @@ def now():
 
     return "%s" % austin_time
 
+
+@app.route("/hero-text")
+def hero_text():
+    id = request.args.get('id')
+    font_size = request.args.get('font-size', '10')
+    try:
+        font_size = int(font_size)
+    except ValueError:
+        pass
+
+    text = obj_data('%s' % id)
+
+    return render_template('hero.html',
+        font_size=font_size,
+        text=text,
+        )
 @app.route("/activity-text")
 def activity():
     location = request.args.get('location')
