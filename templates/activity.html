@@ -14,6 +14,7 @@
 			font-weight: normal;
 		}
 		.descr {
+			text-align: center;
 			color:#fff;
 			font-size: {{ font_size }}px;
 		}
@@ -23,7 +24,7 @@
 <body>
 	<div class="descr">
 		{% if is_open_now %}
-			{% if activity.checkins >= 0 %}
+			{% if activity.checkins == null %}
 				{{ activity.checkins }} Player{% if activity.checkins != 1 %}s{%endif%} Checked-In Right Now
 			{% else %}
 				Open Right Now
