@@ -30,8 +30,15 @@ The text is displayed formats like this…
 - Open Right Now *(if checkins for the given location is null)*
 - Open Friday 6:00 PM - 3:00 AM
 
+##### Bad Beat
 
+Here is the URL you can use to display bad beat…
 
+```
+https://tch-activity.apps.sage-iq.com/hero-text?id=bad-beat
+```
+
+You can add the same way as the checkins URL and can also add an option font-size parameter, as well.
 
 
 ###
