@@ -1,0 +1,35 @@
+<!doctype html>
+<head>
+	<title>Open Info</title>
+	<style type="text/css">
+		html,body {
+			background-color: #000;
+			margin: 0;
+			padding: 0;
+		}
+		body {
+			font-family: lulo-clean-w01-one-bold, sans-serif;
+			font-style: normal;
+			font-variant-caps: normal;
+			font-weight: normal;
+		}
+		.descr {
+			color:#fff;
+			font-size: {{ font_size }}px;
+		}
+	</style>
+	<link rel="stylesheet" href="https://static.parastorage.com/services/santa-resources/resources/viewer/user-site-fonts/v3/languages.css" />
+</head>
+<body>
+	<div class="descr">
+		{% if is_open_now %}
+			{% if activity.checkins >= 0 %}
+				{{ activity.checkins }} Player{% if activity.checkins != 1 %}s{%endif%} Checked-In Right Now
+			{% else %}
+				Open Right Now
+			{% endif %}
+		{% else %}
+			Open {{next_open_time.Day}} {{next_open_time.Open}} - {{next_open_time.Close}}
+		{% endif %}
+	</div>
+</body>

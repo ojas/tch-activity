@@ -83,4 +83,4 @@ curl \
     "Open": "4:00 PM",
     "Close": "4:00 AM"
   }
-]' http://localhost:5000/data/north-austin-hours
+]' http://localhost:5000/data/south-austin-hours

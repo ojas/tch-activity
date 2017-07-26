@@ -74,7 +74,7 @@ curl \
     -H 'Api-Key: test123' \
     -H 'Content-Type: application/json' \
     --data '{"checkins": 42}' \
-    https://tch-activity.apps.sage-iq.com/data/north-austin
+    http://localhost:5000/data/north-austin
 ```
 
 Set south location to 56 checkins…
@@ -84,5 +84,5 @@ curl \
     -H 'Api-Key: test123' \
     -H 'Content-Type: application/json' \
     --data '{"checkins": 56}' \
-    https://tch-activity.apps.sage-iq.com/data/south-austin
+    http://localhost:5000/data/south-austin
 ```
