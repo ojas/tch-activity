@@ -25,9 +25,9 @@
 	<div class="descr">
 		{% if is_open_now %}
 			{% if activity.checkins == null %}
-				{{ activity.checkins }} Player{% if activity.checkins != 1 %}s{%endif%} Checked-In Right Now
-			{% else %}
 				Open Right Now
+			{% else %}
+				{{ activity.checkins }} Player{% if activity.checkins != 1 %}s{%endif%} Checked-In Right Now
 			{% endif %}
 		{% else %}
 			Open {{next_open_time.Day}} {{next_open_time.Open}} - {{next_open_time.Close}}
