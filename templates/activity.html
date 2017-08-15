@@ -24,7 +24,7 @@
 <body>
 	<div class="descr">
 		{% if is_open_now %}
-			{% if activity and activity.checkins is none %}
+			{% if not activity or activity.checkins is none %}
 				Open Right Now
 			{% else %}
 				{{ activity.checkins }} Player{% if activity.checkins != 1 %}s{%endif%} Checked In Right Now
