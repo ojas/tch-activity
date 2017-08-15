@@ -60,7 +60,9 @@ def open_info(hours):
         return val >= nmin and val <= nmax
 
     austin_time = datetime.now(tz=pytz.timezone('America/Chicago'))
+    austin_time_weekday =  
     day_of_week_name = calendar.day_name[austin_time.weekday()]
+
 
     the_day = None
     for day_hour in hours:
@@ -69,7 +71,9 @@ def open_info(hours):
             break
 
     open_times = get_open_times()
-    week_time = (mins_in_day * austin_time.weekday() + 60 * austin_time.hour + austin_time.minute) % mins_in_week
+    # Note: austin_time.weekday() means 0 = Monday
+    # We need to convert to 0 = Sunday hence the (austin_time.weekday()+1) % 7
+    week_time = (mins_in_day * ((austin_time.weekday()+1) % 7) + 60 * austin_time.hour + austin_time.minute) % mins_in_week
 
     open_now = False
     next_open_time = None
