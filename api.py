@@ -44,7 +44,7 @@ def open_info(hours):
         for day_of_week, biz_hours in enumerate(hours):
             day_open = get_minute_value(biz_hours['Open'])
             day_close = get_minute_value(biz_hours['Close'])
-            if day_open and day_close:
+            if day_open is not None and day_close is not None:
                 if day_close < day_open:
                     day_close += mins_in_day
                 open_times.append([
@@ -78,6 +78,7 @@ def open_info(hours):
     next_open_time = None
 
     for day_open, day_close, day_open_info in open_times:
+#        print(day_open, day_close, day_open_info)
         if next_open_time is None and day_open >= week_time:
             next_open_time = day_open_info
         if within(week_time, day_open, day_close):
