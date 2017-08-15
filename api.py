@@ -60,7 +60,6 @@ def open_info(hours):
         return val >= nmin and val <= nmax
 
     austin_time = datetime.now(tz=pytz.timezone('America/Chicago'))
-    austin_time_weekday =  
     day_of_week_name = calendar.day_name[austin_time.weekday()]
 
 
