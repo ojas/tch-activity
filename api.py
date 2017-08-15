@@ -90,6 +90,12 @@ def open_info(hours):
         next_open_time['Day'] = 'Today'
     return open_now, next_open_time
 
+def simplify_time(s):
+    s = s.replace(' PM', 'p')
+    s = s.replace(' AM', 'a')
+    s = s.replace(':00', '')
+    return s
+
 def add_cors(request, resp):
     headers = {
         'Access-Control-Allow-Origin': '*', #request.environ.get('HTTP_HOST', '*'),
@@ -144,6 +150,8 @@ def activity():
     austin_time = datetime.now(tz=pytz.timezone('America/Chicago'))
 
     is_open_now, next_open_time = open_info(hours)
+    next_open_time['Open'] = simplify_time(next_open_time['Open'])
+    next_open_time['Close'] = simplify_time(next_open_time['Close'])
 
     return render_template('activity.html',
         activity=activity,
