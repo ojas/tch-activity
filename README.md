@@ -1,5 +1,13 @@
 # TCH Live Activity
 
+## Dev
+
+```
+env FLASK_APP=api.py env FLASK_DEBUG=1 flask run
+```
+
+
+## Usage
 
 Just here are the URLs you can use to display current activity…
 

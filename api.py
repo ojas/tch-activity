@@ -85,7 +85,7 @@ def open_info(hours):
             open_now = True
 
     if next_open_time is None:
-        next_open_time = open_times[0]
+        next_open_time = open_times[0][2]
 
     if next_open_time['Day'] == day_of_week_name:
         next_open_time['Day'] = 'Today'
