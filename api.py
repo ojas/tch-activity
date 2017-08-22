@@ -164,8 +164,6 @@ def activity():
 
 @app.route("/data/<id>", methods=['POST', 'GET'])
 def data_endpoint(id):
-
-
     if request.method == 'POST':
         if request.headers.get('api-key') not in API_KEYS:
             return Response(json.dumps({'message' : 'access denied'}), status=403, mimetype='application/json', )
@@ -179,3 +177,10 @@ def data_endpoint(id):
     resp = Response(json.dumps(o), status=200, mimetype='application/json', )
     add_cors(request, resp)
     return resp
+
+@app.route("/admin")
+def admin():
+    api_key = request.args.get('api-key')
+    return render_template('admin.html',
+        api_key=api_key
+        )

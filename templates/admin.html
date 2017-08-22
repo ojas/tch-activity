@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en" >
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700,400italic">
+  <link rel='stylesheet prefetch' href='https://ajax.googleapis.com/ajax/libs/angular_material/1.0.3/angular-material.min.css'>
+  <script>
+  window.console = window.console || function(t) {};
+</script>
+</head>
+
+<body ng-app="tchApp" ng-cloak ng-controller="AdminController as editor" layout="column">
+
+{% raw %}
+
+    <md-tabs md-dynamic-height md-border-bottom>
+      <md-tab label="North Austin" md-on-select="loadLocation('north-austin')">
+        <md-content class="md-padding">
+          <h3 class="md-display-1">North Austin Hours</h3>
+          <form name="northAustinHoursForm">
+            <div ng-repeat="dayHour in editor.hours">
+                <md-input-container>
+                  <label>{{dayHour.Day}} Open</label>
+                  <input name="open" ng-model="dayHour.Open" ng-pattern="regexHour">
+                </md-input-container>
+                <md-input-container>
+                  <label>{{dayHour.Day}} Close</label>
+                  <input name="open" ng-model="dayHour.Close" ng-pattern="regexHour">
+                </md-input-container>
+            </div>
+            <md-button class="md-primary md-raised" ng-click="saveLocation('north-austin')" ng-disabled="northAustinHoursForm.$invalid">Save</md-button>
+          </form>
+        </md-content>
+      </md-tab>
+      <md-tab label="South Austin" md-on-select="loadLocation('south-austin')">
+        <md-content class="md-padding">
+          <h3 class="md-display-1">South Austin Hours</h3>
+          <form name="southAustinHoursForm">
+            <div ng-repeat="dayHour in editor.hours">
+                <md-input-container>
+                  <label>{{dayHour.Day}} Open</label>
+                  <input name="open" ng-model="dayHour.Open" ng-pattern="regexHour">
+                </md-input-container>
+                <md-input-container>
+                  <label>{{dayHour.Day}} Close</label>
+                  <input name="open" ng-model="dayHour.Close" ng-pattern="regexHour">
+                </md-input-container>
+            </div>
+            <md-button class="md-primary md-raised" ng-click="saveLocation('south-austin')" ng-disabled="southAustinHoursForm.$invalid">Save</md-button>
+          </form>
+        </md-content>
+      </md-tab>
+<!--       <md-tab label="Bad Beat">
+        <md-content class="md-padding">
+          <h1 class="md-display-2">Bad Beat</h1>
+          <p>Integer turpis erat, porttitor vitae mi faucibus, laoreet interdum tellus. Curabitur posuere molestie dictum. Morbi eget congue risus, quis rhoncus quam. Suspendisse vitae hendrerit erat, at posuere mi. Cras eu fermentum nunc. Sed id ante eu orci commodo volutpat non ac est. Praesent ligula diam, congue eu enim scelerisque, finibus commodo lectus.</p>
+        </md-content>
+      </md-tab> -->
+    </md-tabs>
+  </section>
+
+{% endraw %}
+
+<script src='https://ajax.googleapis.com/ajax/libs/angularjs/1.4.8/angular.js'></script>
+<script src='https://ajax.googleapis.com/ajax/libs/angularjs/1.4.8/angular-aria.js'></script>
+<script src='https://ajax.googleapis.com/ajax/libs/angularjs/1.4.8/angular-animate.js'></script>
+<script src='https://ajax.googleapis.com/ajax/libs/angular_material/1.0.3/angular-material.min.js'></script>
+<script>
+var app = angular.module('tchApp', ['ngMaterial'])
+.controller('AdminController', ['$scope', '$http', '$location', function( $scope, $http, $location) {
+    this.hours = [];
+    $scope.regexHour = '\\d?\\d:\\d\\d ?[pPaA][mM]';
+    this.apiKey = "{{api_key}}";
+    var self = this;
+    $scope.loadLocation = function(locationName) {
+      $http({method: 'GET', url: '/data/' + locationName + '-hours'}).
+        then(function(response) {
+          self.hours = response.data;
+        }, function(response) {
+          console.log('error', response);
+      });
+    }
+    $scope.saveLocation = function(locationName) {
+      $http({
+        method: 'POST',
+        url: '/data/' + locationName + '-hours',
+        headers: {
+          'Api-key' : 'test',
+          'Content-type' : 'application/json'
+        },
+        data: self.hours
+      }).
+        then(function(response) {
+          alert('Hours saved.');
+        }, function(response) {
+          alert('Error saving hours.');
+          console.log('error', response);
+      });
+    }
+}])
+</script>
+
+</body>
+</html>
