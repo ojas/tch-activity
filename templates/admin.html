@@ -85,7 +85,7 @@ var app = angular.module('tchApp', ['ngMaterial'])
         method: 'POST',
         url: '/data/' + locationName + '-hours',
         headers: {
-          'Api-key' : 'test',
+          'Api-key' : self.apiKey,
           'Content-type' : 'application/json'
         },
         data: self.hours
