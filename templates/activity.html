@@ -27,7 +27,7 @@
 			{% if not activity or activity.checkins is none %}
 				Open Right Now
 			{% else %}
-				{{ activity.checkins }} Player{% if activity.checkins != 1 %}s{%endif%} Checked In Right Now
+				{{ activity.checkins }} Member{% if activity.checkins != 1 %}s{%endif%} Checked In Right Now
 			{% endif %}
 		{% else %}
 			Open {{next_open_time.Day}} {{next_open_time.Open}} - {{next_open_time.Close}}
