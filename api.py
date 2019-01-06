@@ -4,7 +4,7 @@ import pytz
 import json
 from datetime import datetime
 
-API_KEYS = os.environ.get('API_KEYS', '').split(',') 
+API_KEYS = os.environ.get('API_KEYS', '').split(',')
 
 app = Flask(__name__)
 
@@ -21,10 +21,10 @@ def obj_data(id, *args):
             with open(filename, 'r') as f:
                 o = json.load(f)
         except FileNotFoundError:
-            abort(404) 
+            abort(404)
     return o
 
-def open_info(hours):
+def open_info(hours, austin_time):
     import calendar
     import time
     from datetime import datetime
@@ -59,9 +59,8 @@ def open_info(hours):
             return val >= nmin or val <= nmax
         return val >= nmin and val <= nmax
 
-    austin_time = datetime.now(tz=pytz.timezone('America/Chicago'))
-    day_of_week_name = calendar.day_name[austin_time.weekday()]
 
+    day_of_week_name = calendar.day_name[austin_time.weekday()]
 
     the_day = None
     for day_hour in hours:
@@ -112,10 +111,9 @@ def hello():
 
 @app.route("/now")
 def now():
-    austin_time = datetime.now(tz=pytz.timezone('America/Chicago'))
-
     hours = obj_data('north-austin-hours')
-    is_open_now, next_open_time = open_info(hours)
+    austin_time = datetime.now(tz=pytz.timezone('America/Chicago'))
+    is_open_now, next_open_time = open_info(hours, austin_time)
     return "%s\n\n<br>%s<br>%s" % (austin_time, is_open_now, next_open_time)
 
     return "%s" % austin_time
@@ -148,9 +146,7 @@ def activity():
     activity = obj_data('%s' % location)
     hours = obj_data('%s-hours' % location)
 
-    austin_time = datetime.now(tz=pytz.timezone('America/Chicago'))
-
-    is_open_now, next_open_time = open_info(hours)
+    is_open_now, next_open_time = open_info(hours, datetime.now(tz=pytz.timezone('America/Chicago')))
     next_open_time['Open'] = simplify_time(next_open_time['Open'])
     next_open_time['Close'] = simplify_time(next_open_time['Close'])
 
@@ -184,3 +180,51 @@ def admin():
     return render_template('admin.html',
         api_key=api_key
         )
+
+import unittest
+class TestHours(unittest.TestCase):
+
+    def test_sort_of(self):
+
+        DAYS_OF_WEEK_SURPRISE = """
+Day | Planet  | Irregs            |
+--- | ------- | ----------------- |
+Sun | Sun     | Sōl, Helios       | ☉ |
+Mon | Moon    | Luna, Selene      | ☾ |
+Tue | Mars    | Mars, Ares        | ♂ | Ma  | Fe - Iron |
+Wed | Mercury | Mercurius, Hermes | ☿ | Me  |
+Thu | Jupiter | Iuppiter, Zeus    | ♃ |
+Fri | Venus   | Venus, Aphrodite  | ♀ | V   |
+Sat | Saturn  | Saturnus, Kronos  | ♄ |
+        """
+        # https://en.wikipedia.org/wiki/Planet_symbols
+
+        hours = obj_data('north-austin-hours')
+
+        for dow_idx, dow_symbol in enumerate('☉☾♂☿♃♀♄'):
+            day_hours = hours[dow_idx]
+            print(f'{dow_symbol} {day_hours["Day"]}' )
+
+            for hour_of_day in range(0, 23):
+                for min in range(0, 60, 30):
+                    austin_time = datetime(2019, 1, 6 + dow_idx, hour_of_day, min) #,tz=pytz.timezone('America/Chicago')
+                    is_open_now, next_open_time = open_info(hours, austin_time)
+
+                    print(austin_time.strftime('%H:%M '), end='')
+                    if is_open_now:
+                        print('Open.')
+                    else:
+                        print(f'Closed. Re-opens {next_open_time["Day"]} {next_open_time["Open"]} - {next_open_time["Close"]}')
+
+        self.assertEqual('foo'.upper(), 'FOO')
+    #
+    # def test_isupper(self):
+    #     self.assertTrue('FOO'.isupper())
+    #     self.assertFalse('Foo'.isupper())
+    #
+    # def test_split(self):
+    #     s = 'hello world'
+    #     self.assertEqual(s.split(), ['hello', 'world'])
+    #     # check that s.split fails when the separator is not a string
+    #     with self.assertRaises(TypeError):
+    #         s.split(2)
