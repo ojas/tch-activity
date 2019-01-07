@@ -240,7 +240,7 @@ def dump_info(hours, bh):
                 is_open_now, next_open_time = bh.get_open_info(austin_time)
 
                 lines += [ austin_time.strftime('%a %H:%M ') +
-                    ('Open' if is_open_now else 'Closed; Opens ' + next_open_time.upper()) ]
+                    ('Open NOW' if is_open_now else 'Open ' + next_open_time.upper()) ]
     return '\n'.join(lines)
 
 import unittest
