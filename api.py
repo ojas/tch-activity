@@ -52,8 +52,22 @@ class BusinessHours:
 
         # sort by time
         events = sorted(events, key=lambda x: x.wt)
+        collapsed_events = []
 
-        self.events = events
+        l = len(events)
+
+
+        for idx, item in enumerate(events):
+            prev_idx = (idx - 1) % l
+            if idx == prev_idx:
+                continue
+            prev_item = events[prev_idx]
+            if item.open == prev_item.open:
+                continue
+            collapsed_events.append(item)
+                # collapsed_events
+
+        self.events = collapsed_events
 
     @classmethod
     def get_weektime(cls, day_of_week, time_str):
@@ -223,7 +237,7 @@ def dump_info(hours, bh):
     lines += ['Transitions']
     for idx, event in enumerate(bh.events):
         tt = BusinessHours.friendly_weektime(event.wt)
-        lines += ['%2s %s at %5s %s %s' % (idx, 'Open ' if event.open else 'Close', event.wt, tt[1], tt[2])]
+        lines += ['%2s %s at (%5s) %s %s' % (idx, 'Open ' if event.open else 'Close', event.wt, tt[1], tt[2])]
 
     lines += ['']
 
