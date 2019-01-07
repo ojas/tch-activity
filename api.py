@@ -3,8 +3,13 @@ from flask import Flask, request, Response, jsonify, send_from_directory, render
 import pytz
 import json
 from datetime import datetime
+import calendar
+import time
 
 API_KEYS = os.environ.get('API_KEYS', '').split(',')
+MINS_IN_DAY = 24 * 60;
+MINS_IN_WEEK = MINS_IN_DAY * 7
+
 
 app = Flask(__name__)
 
@@ -24,35 +29,219 @@ def obj_data(id, *args):
             abort(404)
     return o
 
-def open_info(hours, austin_time):
-    import calendar
-    import time
-    from datetime import datetime
+def get_open_times(hours):
 
-    mins_in_day = 24 * 60;
-    mins_in_week = mins_in_day * 7
-
-    def get_minute_value(time_str):
+    def get_weektime(day_of_week, time_str):
         time_str = time_str.strip().upper().replace(' ', '')
         if time_str:
             t = time.strptime(time_str, "%I:%M%p")
-            return 60 * t.tm_hour + t.tm_min
+            return (MINS_IN_DAY * day_of_week + 60 * t.tm_hour + t.tm_min) % MINS_IN_WEEK
         return None
 
-    def get_open_times():
-        open_times = []
+    open_times = []
+
+    last_open_time = None
+
+    for day_of_week, biz_hours in enumerate(hours):
+        day_open = get_weektime(day_of_week, biz_hours['Open'])
+        day_close = get_weektime(day_of_week, biz_hours['Close'])
+
+        if day_close is not None and day_open is not None and day_close < day_open:
+            day_close += MINS_IN_DAY
+            # or do we and two items? til mid
+
+
+        # if day_open is not None and day_close is not None:
+        if day_open is not None or day_close is not None:
+            open_times.append([day_open, day_close, biz_hours, ''])
+
+    l = len(open_times)
+
+    for idx, item in enumerate(open_times):
+        prev_item = open_times[(idx-1)%l]
+        next_item = open_times[(idx+1)%l]
+
+        # there's an open event and no close event from yday
+        if item[0] is not None and prev_item[1] is None:
+            # there's a close time for today...
+            if item[1] is not None:
+                prev_item[1] = item[1]
+                # print('closing 1', item[2])
+                # item[2] = None
+                item[3] = '🚫 closing time exists, prev %s' % prev_item
+            else:
+                # otherwise, today's open event is extraneous
+                item[3] = '🚫 extraneous'
+                # item[2] = None
+
+        # if item[1] is None:
+        #     if next_item[1] is not None:
+        #         item[1] = next_item[1]
+        #         # next_item[2] = None
+        #     else:
+        #         item[1] = next_item[0] # better than nothing?
+
+    # pprint(open_times)
+
+    # open_times = [o for o in open_times if o[2] is not None]
+        # if item[0] is None:
+        #     item[0] = prev_item[0] # midnight prior?
+        #     # find next closing time
+        #
+        # print('x', item, prev_item)
+
+    # sun_ot, sat_ot = open_times[0], open_times[6]
+    # for day_of_week in range(6, -1, -1):
+    #
+    #     print(day_of_week)
+
+    return open_times
+
+class BusinessHours:
+    def __init__(self, hours):
+        def get_weektime(day_of_week, time_str):
+            time_str = time_str.strip().upper().replace(' ', '')
+            if time_str:
+                t = time.strptime(time_str, "%I:%M%p")
+                return (MINS_IN_DAY * day_of_week + 60 * t.tm_hour + t.tm_min) % MINS_IN_WEEK
+            return None
+
+        events = []
         for day_of_week, biz_hours in enumerate(hours):
-            day_open = get_minute_value(biz_hours['Open'])
-            day_close = get_minute_value(biz_hours['Close'])
-            if day_open is not None and day_close is not None:
-                if day_close < day_open:
-                    day_close += mins_in_day
-                open_times.append([
-                    (mins_in_day * day_of_week + day_open) % mins_in_week,
-                    (mins_in_day * day_of_week + day_close) % mins_in_week,
-                    biz_hours
-                    ])
-        return open_times
+            day_open = get_weektime(day_of_week, biz_hours['Open'])
+            day_close = get_weektime(day_of_week, biz_hours['Close'])
+
+            if day_open is not None:
+                events.append((day_open, True))
+
+            if day_close is not None:
+                if day_open is not None and day_close < day_open:
+                    day_close += MINS_IN_DAY
+                events.append((day_close, False))
+
+        # sort by time, then open followed by close
+        events = sorted(events, key=lambda x: x[0]+(not x[1]))
+
+        # pad beginning as needed
+        if len(events) and events[0][0]>0:
+            events.insert(0, (0, events[-1][1]))
+
+        self.events = events
+
+    def find(self, **kwargs):
+        gte = kwargs.get('gte')
+        ge = kwargs.get('gt')
+        open = kwargs.get('open')
+        close = kwargs.get('close')
+
+        for idx, ds in enumerate(bh.events):
+            if ds[0]<=week_time:
+                event_idx = idx
+            else:
+                break
+
+        print(last_item)
+
+        return -1
+
+    # l = len(events)
+    # if l:
+    #     if events[0][0] != 0:
+    #         events.insert(0, (0, events[]))
+    # print(events)
+    # exit()
+    # l = len(open_times)
+    #
+    # for idx, item in enumerate(open_times):
+    #     prev_item = open_times[(idx-1)%l]
+    #     next_item = open_times[(idx+1)%l]
+    #
+    #     # there's an open event and no close event from yday
+    #     if item[0] is not None and prev_item[1] is None:
+    #         # there's a close time for today...
+    #         if item[1] is not None:
+    #             prev_item[1] = item[1]
+    #             # print('closing 1', item[2])
+    #             # item[2] = None
+    #             item[3] = '🚫 closing time exists, prev %s' % prev_item
+    #         else:
+    #             # otherwise, today's open event is extraneous
+    #             item[3] = '🚫 extraneous'
+    #             # item[2] = None
+    #
+    #     # if item[1] is None:
+    #     #     if next_item[1] is not None:
+    #     #         item[1] = next_item[1]
+    #     #         # next_item[2] = None
+    #     #     else:
+    #     #         item[1] = next_item[0] # better than nothing?
+    #
+    # # pprint(open_times)
+    #
+    # # open_times = [o for o in open_times if o[2] is not None]
+    #     # if item[0] is None:
+    #     #     item[0] = prev_item[0] # midnight prior?
+    #     #     # find next closing time
+    #     #
+    #     # print('x', item, prev_item)
+    #
+    # # sun_ot, sat_ot = open_times[0], open_times[6]
+    # # for day_of_week in range(6, -1, -1):
+    # #
+    # #     print(day_of_week)
+    #
+    # return open_times
+
+def open_info_2(hours, austin_time):
+    day_of_week_name = calendar.day_name[austin_time.weekday()]
+
+    the_day = None
+    for day_hour in hours:
+        if day_of_week_name == day_hour['Day']:
+            the_day = day_hour
+            break
+
+    bh = BusinessHours(hours)
+    # Note: austin_time.weekday() means 0 = Monday
+    # We need to convert to 0 = Sunday hence the (austin_time.weekday()+1) % 7
+    week_time = (MINS_IN_DAY * ((austin_time.weekday()+1) % 7) + 60 * austin_time.hour + austin_time.minute) % MINS_IN_WEEK
+
+    # find item in open_times where ts >= week_time and
+
+    last_item = None
+    event_idx = None
+
+
+
+
+
+    for idx, ds in enumerate(bh.events):
+        # print(ds, week_time)
+        if ds[0]<=week_time:
+            event_idx = idx
+        else:
+            break
+
+    print(last_item)
+    exit()
+    open_now = False
+    next_open_time = None
+
+    for day_open, day_close, day_open_info in open_times:
+#        print(day_open, day_close, day_open_info)
+        if next_open_time is None and day_open >= week_time:
+            next_open_time = day_open_info
+        if within(week_time, day_open, day_close):
+            open_now = True
+
+    if next_open_time is None:
+        next_open_time = open_times[0][2]
+
+    if next_open_time['Day'] == day_of_week_name:
+        next_open_time['Day'] = 'Today'
+    return open_now, next_open_time
+
+def open_info(hours, austin_time):
 
     def within(val, nmin, nmax):
         if nmax<nmin:
@@ -68,10 +257,10 @@ def open_info(hours, austin_time):
             the_day = day_hour
             break
 
-    open_times = get_open_times()
+    open_times = get_open_times(hours)
     # Note: austin_time.weekday() means 0 = Monday
     # We need to convert to 0 = Sunday hence the (austin_time.weekday()+1) % 7
-    week_time = (mins_in_day * ((austin_time.weekday()+1) % 7) + 60 * austin_time.hour + austin_time.minute) % mins_in_week
+    week_time = (MINS_IN_DAY * ((austin_time.weekday()+1) % 7) + 60 * austin_time.hour + austin_time.minute) % MINS_IN_WEEK
 
     open_now = False
     next_open_time = None
@@ -184,6 +373,47 @@ def admin():
 import unittest
 class TestHours(unittest.TestCase):
 
+    def get_test_hours(self):
+        return json.loads("""
+[
+  {
+    "Day": "Sunday",
+    "Open": "",
+    "Close": ""
+  },
+  {
+    "Day": "Monday",
+    "Open": "6:00 PM",
+    "Close": "3:00 AM"
+  },
+  {
+    "Day": "Tuesday",
+    "Open": "6:00 PM",
+    "Close": "3:00 AM"
+  },
+  {
+    "Day": "Wednesday",
+    "Open": "6:00 PM",
+    "Close": "3:00 AM"
+  },
+  {
+    "Day": "Thursday",
+    "Open": "6:00 PM",
+    "Close": ""
+  },
+  {
+    "Day": "Friday",
+    "Open": "4:00 PM",
+    "Close": "4:00 AM"
+  },
+  {
+    "Day": "Saturday",
+    "Open": "4:00 PM",
+    "Close": "4:00 PM"
+  }
+]
+        """)
+
     def test_sort_of(self):
 
         DAYS_OF_WEEK_SURPRISE = """
@@ -199,7 +429,15 @@ Sat | Saturn  | Saturnus, Kronos  | ♄ |
         """
         # https://en.wikipedia.org/wiki/Planet_symbols
 
-        hours = obj_data('north-austin-hours')
+        hours = self.get_test_hours()
+
+        bh = BusinessHours(hours)
+
+
+        # self.assertEqual(4, len(open_times), 'open times - four days')
+
+        print(json.dumps(bh.events, indent=2))
+        exit()
 
         for dow_idx, dow_symbol in enumerate('☉☾♂☿♃♀♄'):
             day_hours = hours[dow_idx]
@@ -208,7 +446,7 @@ Sat | Saturn  | Saturnus, Kronos  | ♄ |
             for hour_of_day in range(0, 23):
                 for min in range(0, 60, 30):
                     austin_time = datetime(2019, 1, 6 + dow_idx, hour_of_day, min) #,tz=pytz.timezone('America/Chicago')
-                    is_open_now, next_open_time = open_info(hours, austin_time)
+                    is_open_now, next_open_time = open_info_2(hours, austin_time)
 
                     print(austin_time.strftime('%H:%M '), end='')
                     if is_open_now:
@@ -217,14 +455,3 @@ Sat | Saturn  | Saturnus, Kronos  | ♄ |
                         print(f'Closed. Re-opens {next_open_time["Day"]} {next_open_time["Open"]} - {next_open_time["Close"]}')
 
         self.assertEqual('foo'.upper(), 'FOO')
-    #
-    # def test_isupper(self):
-    #     self.assertTrue('FOO'.isupper())
-    #     self.assertFalse('Foo'.isupper())
-    #
-    # def test_split(self):
-    #     s = 'hello world'
-    #     self.assertEqual(s.split(), ['hello', 'world'])
-    #     # check that s.split fails when the separator is not a string
-    #     with self.assertRaises(TypeError):
-    #         s.split(2)
