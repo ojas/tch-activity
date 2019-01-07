@@ -86,7 +86,7 @@ class BusinessHours:
         mm = time_of_day % 60
         ampm = 'PM' if hh > 12 else 'AM'
         if hh > 12: hh -= 12
-        return day_idx, days[day_idx], simplify_time(f'{hh:02}:{mm:02} {ampm}')
+        return day_idx, days[day_idx], simplify_time('%0.2d:%0.2d %s' % (hh, mm, ampm))
 
 
     def get_open_info(self, austin_time):
@@ -230,7 +230,7 @@ def dump_info(hours, bh):
 
     for dow_idx, dow_symbol in enumerate('☉☾♂☿♃♀♄'):
         day_hours = hours[dow_idx]
-        lines += [f'{dow_symbol} {day_hours["Day"]}']
+        lines += ['%s %s' % (dow_symbol, day_hours["Day"])]
 
         for hour_of_day in range(0, 23):
             for min in range(0, 60, 30):
@@ -238,7 +238,7 @@ def dump_info(hours, bh):
                 is_open_now, next_open_time = bh.get_open_info(austin_time)
 
                 lines += [ austin_time.strftime('%a %H:%M ') +
-                    ('Open.' if is_open_now else f'Closed. Re-opens {next_open_time}') ]
+                    ('Open.' if is_open_now else 'Closed. Re-opens ' + next_open_time) ]
     return '\n'.join(lines)
 
 import unittest
@@ -308,7 +308,7 @@ Sat | Saturn  | Saturnus, Kronos  | ♄ |
 
         for dow_idx, dow_symbol in enumerate('☉☾♂☿♃♀♄'):
             day_hours = hours[dow_idx]
-            print(f'{dow_symbol} {day_hours["Day"]}' )
+            print('%s %s' % (dow_symbol, day_hours["Day"]) )
 
             for hour_of_day in range(0, 23):
                 for min in range(0, 60, 30):
@@ -319,6 +319,6 @@ Sat | Saturn  | Saturnus, Kronos  | ♄ |
                     if is_open_now:
                         print('Open.')
                     else:
-                        print(f'Closed. Re-opens {next_open_time}')
+                        print('Closed. Re-opens ' + next_open_time)
 
         self.assertEqual('foo'.upper(), 'FOO')
