@@ -86,7 +86,7 @@ class BusinessHours:
         mm = time_of_day % 60
         ampm = 'PM' if hh > 12 else 'AM'
         if hh > 12: hh -= 12
-        return day_idx, days[day_idx], simplify_time('%0.2d:%0.2d %s' % (hh, mm, ampm))
+        return day_idx, days[day_idx], simplify_time('%s:%0.2d %s' % (hh, mm, ampm))
 
 
     def get_open_info(self, austin_time):
@@ -101,7 +101,7 @@ class BusinessHours:
 
         austin_dow = austin_time.weekday()
         week_time = (MINS_IN_DAY * ((austin_time.weekday()+1) % 7) + 60 * austin_time.hour + austin_time.minute) % MINS_IN_WEEK
-
+        austin_day_of_week_name = calendar.day_name[austin_time.weekday()]
 
         curr = last(e for e in self.events if e[1] <= week_time)
         is_open_now = curr[2]
@@ -112,23 +112,23 @@ class BusinessHours:
         else:
             # TS Open/Close next_idx
             up_next = offset_events(curr[0]+1)
-            next_open = next(e for e in offset_events(curr[0]+1) if e[2])
-            next_close = next(e for e in offset_events(next_open[0]+1) if not e[2])
+            next_open_event = next(e for e in offset_events(curr[0]+1) if e[2])
+            next_close_event = next(e for e in offset_events(next_open_event[0]+1) if not e[2])
+            next_open_dow_idx, next_open_dow_name, next_open_time_friendly = BusinessHours.friendly_weektime(next_open_event[1])
 
-            open_dow, open_day, open_time = BusinessHours.friendly_weektime(next_open[1])
+            # print(next_open_dow_name, austin_day_of_week_name)
+            if next_open_dow_name == austin_day_of_week_name:
+                next_open_dow_name = 'Today'
 
-            if open_dow == austin_dow:
-                open_day = 'Today'
+            next_open_text_parts += [next_open_dow_name, next_open_time_friendly]
 
-            next_open_text_parts += [open_day, open_time]
-
-            close_dow, close_day, close_time = BusinessHours.friendly_weektime(next_close[1])
+            next_close_dow_idx, next_close_dow_name, next_close_time_friendly = BusinessHours.friendly_weektime(next_close_event[1])
 
             next_open_text_parts += ['-']
 
-            if (close_dow - open_dow) % 7 != 1:
-                next_open_text_parts += [close_day]
-            next_open_text_parts += [close_time]
+            if (next_close_dow_idx - next_open_dow_idx) % 7 != 1:
+                next_open_text_parts += [next_close_dow_name]
+            next_open_text_parts += [next_close_time_friendly]
 
         return is_open_now, ' '.join(next_open_text_parts)
 
@@ -230,6 +230,8 @@ def dump_info(hours, bh):
 
     for dow_idx, dow_symbol in enumerate('☉☾♂☿♃♀♄'):
         day_hours = hours[dow_idx]
+        if len(lines):
+            lines += ['']
         lines += ['%s %s' % (dow_symbol, day_hours["Day"])]
 
         for hour_of_day in range(0, 23):
@@ -238,7 +240,7 @@ def dump_info(hours, bh):
                 is_open_now, next_open_time = bh.get_open_info(austin_time)
 
                 lines += [ austin_time.strftime('%a %H:%M ') +
-                    ('Open.' if is_open_now else 'Closed. Re-opens ' + next_open_time) ]
+                    ('Open' if is_open_now else 'Closed; Opens ' + next_open_time.upper()) ]
     return '\n'.join(lines)
 
 import unittest
