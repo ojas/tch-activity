@@ -5,11 +5,14 @@ import json
 from datetime import datetime
 import calendar
 import time
+from collections import namedtuple
 
 API_KEYS = os.environ.get('API_KEYS', '').split(',')
 MINS_IN_DAY = 24 * 60;
 MINS_IN_WEEK = MINS_IN_DAY * 7
 
+Event = namedtuple('Event', ['wt', 'open'])
+EventWithIndex = namedtuple('EventWithIndex', ['idx', 'wt', 'open'])
 
 app = Flask(__name__)
 
@@ -42,30 +45,13 @@ class BusinessHours:
 
             if day_open != day_close: # open and closing at the same time makes no sense
                 if day_open is not None:
-                    events.append([day_open, True])
+                    events.append(Event(day_open, True))
 
                 if day_close is not None:
-                    events.append([day_close, False])
+                    events.append(Event(day_close, False))
 
-        # sort by time, then open followed by close
-        events = sorted(events, key=lambda x: x[0])
-
-        l = len(events)
-        if l:
-            # pad beginning as needed
-            if events[0][0]>0:
-                # for idx in range(l-1, -1, -1):
-                #     if
-                # exit()
-                # # TODO: events[-1][1] isn't right...
-                events.insert(0, [0, events[-1][1]])
-
-            l = len(events)
-            # link them
-            events = [
-                [idx] + parts + [(idx + 1) % l]
-                for idx, parts in enumerate(events)
-            ]
+        # sort by time
+        events = sorted(events, key=lambda x: x.wt)
 
         self.events = events
 
@@ -90,39 +76,44 @@ class BusinessHours:
 
 
     def get_open_info(self, austin_time):
+        # build padded_events
+        padded_events = [e for e in self.events]
+        if len(padded_events) and padded_events[0].wt>0:
+            padded_events.insert(0, Event(0, padded_events[-1][1]))
+
+        padded_events_with_idx = [EventWithIndex(idx, e[0], e[1]) for idx, e in enumerate(padded_events)]
+
+        l = len(padded_events_with_idx)
+
         def last(iter):
             return list(iter)[-1]
 
         def offset_events(offset):
-            l = len(self.events)
-            return [self.events[(idx+offset)%l] for idx, e in enumerate(self.events)]
-
-        l = len(self.events)
+            return [padded_events_with_idx[(idx+offset)%l] for idx, e in enumerate(padded_events_with_idx)]
 
         austin_dow = austin_time.weekday()
         week_time = (MINS_IN_DAY * ((austin_time.weekday()+1) % 7) + 60 * austin_time.hour + austin_time.minute) % MINS_IN_WEEK
         austin_day_of_week_name = calendar.day_name[austin_time.weekday()]
 
-        curr = last(e for e in self.events if e[1] <= week_time)
-        is_open_now = curr[2]
+        curr = last(e for e in padded_events_with_idx if e.wt <= week_time)
+        is_open_now = curr.open
 
         next_open_text_parts = []
         if is_open_now:
             pass
         else:
             # TS Open/Close next_idx
-            up_next = offset_events(curr[0]+1)
-            next_open_event = next(e for e in offset_events(curr[0]+1) if e[2])
-            next_close_event = next(e for e in offset_events(next_open_event[0]+1) if not e[2])
-            next_open_dow_idx, next_open_dow_name, next_open_time_friendly = BusinessHours.friendly_weektime(next_open_event[1])
+            up_next = offset_events(curr.idx+1)
+            next_open_event = next(e for e in offset_events(curr.idx+1) if e.open)
+            next_close_event = next(e for e in offset_events(next_open_event.idx+1) if not e.open)
+            next_open_dow_idx, next_open_dow_name, next_open_time_friendly = BusinessHours.friendly_weektime(next_open_event.wt)
 
-            # print(next_open_dow_name, austin_day_of_week_name)
             if next_open_dow_name == austin_day_of_week_name:
                 next_open_dow_name = 'Today'
 
             next_open_text_parts += [next_open_dow_name, next_open_time_friendly]
 
-            next_close_dow_idx, next_close_dow_name, next_close_time_friendly = BusinessHours.friendly_weektime(next_close_event[1])
+            next_close_dow_idx, next_close_dow_name, next_close_time_friendly = BusinessHours.friendly_weektime(next_close_event.wt)
 
             next_open_text_parts += ['-']
 
@@ -136,6 +127,7 @@ def simplify_time(s):
     s = s.replace(' PM', 'p')
     s = s.replace(' AM', 'a')
     s = s.replace(':00', '')
+    s = s.replace('0a', 'midnight')
     return s
 
 def add_cors(request, resp):
@@ -227,6 +219,13 @@ def admin():
 
 def dump_info(hours, bh):
     lines = []
+
+    lines += ['Transitions']
+    for idx, event in enumerate(bh.events):
+        tt = BusinessHours.friendly_weektime(event.wt)
+        lines += ['%2s %s at %5s %s %s' % (idx, 'Open ' if event.open else 'Close', event.wt, tt[1], tt[2])]
+
+    lines += ['']
 
     for dow_idx, dow_symbol in enumerate('☉☾♂☿♃♀♄'):
         day_hours = hours[dow_idx]
