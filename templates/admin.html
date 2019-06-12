@@ -50,6 +50,24 @@
           </form>
         </md-content>
       </md-tab>
+      <md-tab label="Houston" md-on-select="loadLocation('houston')">
+        <md-content class="md-padding">
+          <h3 class="md-display-1">Houston Hours</h3>
+          <form name="houstonHoursForm">
+            <div ng-repeat="dayHour in editor.hours">
+                <md-input-container>
+                  <label>{{dayHour.Day}} Open</label>
+                  <input name="open" ng-model="dayHour.Open" ng-pattern="regexHour">
+                </md-input-container>
+                <md-input-container>
+                  <label>{{dayHour.Day}} Close</label>
+                  <input name="open" ng-model="dayHour.Close" ng-pattern="regexHour">
+                </md-input-container>
+            </div>
+            <md-button class="md-primary md-raised" ng-click="saveLocation('houston')" ng-disabled="houstonHoursForm.$invalid">Save</md-button>
+          </form>
+        </md-content>
+      </md-tab>
 <!--       <md-tab label="Bad Beat">
         <md-content class="md-padding">
           <h1 class="md-display-2">Bad Beat</h1>
