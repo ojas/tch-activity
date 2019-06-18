@@ -59,6 +59,7 @@ You can add the same way as the checkins URL and can also add an option font-siz
 ```
 POST https://tch-activity.apps.sage-iq.com/data/north-austin
 POST https://tch-activity.apps.sage-iq.com/data/south-austin
+POST https://tch-activity.apps.sage-iq.com/data/houston
 ```
 
 ##### Headers:
@@ -107,6 +108,7 @@ curl \
 ```
 POST https://tch-activity.apps.sage-iq.com/data/north-austin-hours
 POST https://tch-activity.apps.sage-iq.com/data/south-austin-hours
+POST https://tch-activity.apps.sage-iq.com/data/houston-hours
 ```
 
 ##### Headers:

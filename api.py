@@ -33,6 +33,8 @@ def obj_data(id, *args):
     return o
 
 class BusinessHours:
+    """Takes an hours object (from JSON) in, gives you an object that helps you determine if we're open at a given time"""
+     
     def __init__(self, hours):
         events = []
         for day_of_week, biz_hours in enumerate(hours):
@@ -127,7 +129,7 @@ class BusinessHours:
 
             next_open_text_parts += [next_open_dow_name, next_open_time_friendly]
 
-            next_close_dow_idx, next_close_dow_name, next_close_time_friendly = BusinessHours.friendly_weektime(next_close_event.wt)
+            next_close_dow_idx, next_close_dow_name, next_close_time_friendly = BusinessHours.friendly_weektime(next_close_event.wt % (7 * 60 * 24))
 
             next_open_text_parts += ['-']
 
@@ -136,7 +138,7 @@ class BusinessHours:
             next_open_text_parts += [next_close_time_friendly]
 
         return is_open_now, ' '.join(next_open_text_parts)
-
+        
 def simplify_time(s):
     s = s.replace(' PM', 'p')
     s = s.replace(' AM', 'a')
@@ -258,8 +260,19 @@ def dump_info(hours, bh):
 
 import unittest
 class TestHours(unittest.TestCase):
+    """Test open/closed hours
+
+    We should show the number of check-ins when open, and diplay when we'll reopen if closed.
+    get_open_info contains the interesting bits.
+
+    Run tests via `python -m unittest api.TestHours`
+    """
 
     def get_test_hours(self):
+        # You can test your own JSON file via something like this:
+        # return json.load(open('data/my-site-hours.json'))
+
+        # Or just test an inline JSON
         return json.loads("""
 [
   {
@@ -295,7 +308,7 @@ class TestHours(unittest.TestCase):
   {
     "Day": "Saturday",
     "Open": "4:00 PM",
-    "Close": "4:00 PM"
+    "Close": "4:00 AM"
   }
 ]
         """)
@@ -323,11 +336,12 @@ Sat | Saturn  | Saturnus, Kronos  | ♄ |
 
         for dow_idx, dow_symbol in enumerate('☉☾♂☿♃♀♄'):
             day_hours = hours[dow_idx]
-            print('%s %s' % (dow_symbol, day_hours["Day"]) )
+            print('%s %s' % (dow_idx, day_hours["Day"]) )
+            print('----')
 
             for hour_of_day in range(0, 23):
-                for min in range(0, 60, 30):
-                    austin_time = datetime(2019, 1, 6 + dow_idx, hour_of_day, min)
+                for minutes in range(0, 60, 30):
+                    austin_time = datetime(2019, 1, 6 + dow_idx, hour_of_day, minutes)
                     is_open_now, next_open_time = bh.get_open_info(austin_time)
 
                     print(austin_time.strftime('%a %H:%M '), end='')
