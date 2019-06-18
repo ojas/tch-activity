@@ -40,24 +40,23 @@ class BusinessHours:
         for day_of_week, biz_hours in enumerate(hours):
             day_open = BusinessHours.get_weektime(day_of_week, biz_hours['Open'])
             day_close = BusinessHours.get_weektime(day_of_week, biz_hours['Close'])
-
+            
             if day_close is not None:
                 if day_open is not None and day_close < day_open:
                     day_close += MINS_IN_DAY
 
             if day_open != day_close: # open and closing at the same time makes no sense
                 if day_open is not None:
-                    events.append(Event(day_open, True))
+                    events.append(Event(day_open % MINS_IN_WEEK, True))
 
                 if day_close is not None:
-                    events.append(Event(day_close, False))
+                    events.append(Event(day_close % MINS_IN_WEEK, False))
 
         # sort by time
         events = sorted(events, key=lambda x: x.wt)
         collapsed_events = []
 
         l = len(events)
-
 
         for idx, item in enumerate(events):
             prev_idx = (idx - 1) % l
@@ -129,7 +128,7 @@ class BusinessHours:
 
             next_open_text_parts += [next_open_dow_name, next_open_time_friendly]
 
-            next_close_dow_idx, next_close_dow_name, next_close_time_friendly = BusinessHours.friendly_weektime(next_close_event.wt % (7 * 60 * 24))
+            next_close_dow_idx, next_close_dow_name, next_close_time_friendly = BusinessHours.friendly_weektime(next_close_event.wt)
 
             next_open_text_parts += ['-']
 
@@ -270,7 +269,7 @@ class TestHours(unittest.TestCase):
 
     def get_test_hours(self):
         # You can test your own JSON file via something like this:
-        # return json.load(open('data/my-site-hours.json'))
+        return json.load(open('data/my-site-hours.json'))
 
         # Or just test an inline JSON
         return json.loads("""
@@ -330,24 +329,44 @@ Sat | Saturn  | Saturnus, Kronos  | ♄ |
 
         hours = self.get_test_hours()
 
+        lf = '%-10s|%8s|%8s'
+        print('## Hours')
+        print()
+        print(lf % ('Day', 'Open', 'Close'))
+        print(lf % ('-'*10, '-'*8, '-'*8))
+        for h in hours:
+            print(lf % (h['Day'], h['Open'], h['Close']))
+
         bh = BusinessHours(hours)
 
-        print(json.dumps(bh.events, indent=2))
+        lf = '%-10s|%8s|%8s'
+        print()
+        print('## Events')
+        print()
+        print(lf % ('Day', 'Time', 'Open'))
+        print(lf % ('-'*10, '-'*8, '-'*8))
+        for ev in bh.events:
+            idx, wn, t = bh.friendly_weektime(ev.wt)
+            print(lf % (wn, t, ev.open))
+        print()
+
+        lf = '%-10s|%-45s'
+        print()
+        print('## Test Result')
+        print()
+        print(lf % ('Daytime', 'Status'))
+        print(lf % ('-'*10, '-'*45))
 
         for dow_idx, dow_symbol in enumerate('☉☾♂☿♃♀♄'):
             day_hours = hours[dow_idx]
-            print('%s %s' % (dow_idx, day_hours["Day"]) )
-            print('----')
-
             for hour_of_day in range(0, 23):
                 for minutes in range(0, 60, 30):
                     austin_time = datetime(2019, 1, 6 + dow_idx, hour_of_day, minutes)
                     is_open_now, next_open_time = bh.get_open_info(austin_time)
 
-                    print(austin_time.strftime('%a %H:%M '), end='')
-                    if is_open_now:
-                        print('Open.')
-                    else:
-                        print('Closed. Re-opens ' + next_open_time)
+                    status = 'Open' if is_open_now else 'Closed. Re-opens ' + next_open_time
+
+                    # print(austin_time.strftime('%a %H:%M '), end='')
+                    print(lf % (austin_time.strftime('%a %H:%M '), status))
 
         self.assertEqual('foo'.upper(), 'FOO')
