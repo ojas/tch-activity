@@ -81,12 +81,21 @@ class BusinessHours:
     @classmethod
     def friendly_weektime(cls, weektime):
         days=['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+
+        # Get day [0,6], minutes into the day [0, 60*24)
         day_idx = weektime // MINS_IN_DAY
         time_of_day = weektime % MINS_IN_DAY
+
+        # Get hours [0,23) and minutes [0,59)
         hh = time_of_day // 60
         mm = time_of_day % 60
-        ampm = 'PM' if hh > 12 else 'AM'
+
+        # PM is if hours >= noon (">" is incorrect)
+        ampm = 'PM' if hh >= 12 else 'AM'
+
+        # if hours > 12 (">=" is incorrect)
         if hh > 12: hh -= 12
+    
         return day_idx, days[day_idx], simplify_time('%s:%0.2d %s' % (hh, mm, ampm))
 
 
